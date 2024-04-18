@@ -16,13 +16,13 @@ export default function Layout({
       <Meta />
 
       {/* Global header */}
-      <Header />
+      {/* <Header /> */}
 
       {/* Injected child content */}
       <div className={styles.layout__content}>{children}</div>
 
       {/* Global footer */}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

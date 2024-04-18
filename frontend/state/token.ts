@@ -5,36 +5,49 @@ import keccak256 from "keccak256"; // Keccak256 hashing
 import MerkleTree from "merkletreejs"; // MerkleTree.js
 import { useEffect, useState } from "react"; // React
 import { createContainer } from "unstated-next"; // State management
+import {
+  StandardMerkleTree
+} from "@openzeppelin/merkle-tree"
+import TreeJson from '../tree.json';
 
-/**
- * Generate Merkle Tree leaf from address and value
- * @param {string} address of airdrop claimee
- * @param {string} value of airdrop tokens to claimee
- * @returns {Buffer} Merkle Tree node
- */
-function generateLeaf(address: string, value: string): Buffer {
-  return Buffer.from(
-    // Hash in appropriate Merkle format
-    ethers.utils
-      .solidityKeccak256(["address", "uint256"], [address, value])
-      .slice(2),
-    "hex"
-  );
-}
+const whitelist = {
+  "0x1552B1A051430290f1B5E31F156E3CD501f520C3": 1000,
+  "0xe32d9D1F1484f57F8b5198f90bcdaBC914de0B5A": 1000,
+  "0x858817FF833B5608656B22A1940eE97C7b26134c": 1000,
+  "0x921b87310e4DC8827e91938C89eDa521CAd63c3a": 1000,
+  "0x020bCdC76C86db34718f0357c35811b147CD866B": 1000,
+  "0x93eb6ccF00Bfdb205ab79E824C4855d2ad196a77": 1000
+};
 
-// Setup merkle tree
-const merkleTree = new MerkleTree(
-  // Generate leafs
-  Object.entries(config.airdrop).map(([address, tokens]) =>
-    generateLeaf(
-      ethers.utils.getAddress(address),
-      ethers.utils.parseUnits(tokens.toString(), config.decimals).toString()
-    )
-  ),
-  // Hashing function
-  keccak256,
-  { sortPairs: true }
-);
+// /**
+//  * Generate Merkle Tree leaf from address and value
+//  * @param {string} address of airdrop claimee
+//  * @param {string} value of airdrop tokens to claimee
+//  * @returns {Buffer} Merkle Tree node
+//  */
+// function generateLeaf(address: string, value: string): Buffer {
+//   return Buffer.from(
+//     // Hash in appropriate Merkle format
+//     ethers.utils
+//       .solidityKeccak256(["address", "uint256"], [address, value])
+//       .slice(2),
+//     "hex"
+//   );
+// }
+
+// // Setup merkle tree
+// const merkleTree = new MerkleTree(
+//   // Generate leafs
+//   Object.entries(config.airdrop).map(([address, tokens]) =>
+//     generateLeaf(
+//       ethers.utils.getAddress(address),
+//       ethers.utils.parseUnits(tokens.toString(), config.decimals).toString()
+//     )
+//   ),
+//   // Hashing function
+//   keccak256,
+//   { sortPairs: true }
+// );
 
 function useToken() {
   // Collect global ETH state
@@ -79,9 +92,9 @@ function useToken() {
     // If address is in airdrop. convert address to correct checksum
     address = ethers.utils.getAddress(address)
     
-    if (address in config.airdrop) {
+    if (address in whitelist) {
       // Return number of tokens available
-      return config.airdrop[address];
+      return (whitelist as any)[address];
     }
 
     // Else, return 0 tokens
@@ -112,13 +125,25 @@ function useToken() {
     const formattedAddress: string = ethers.utils.getAddress(address);
     // Get tokens for address
     const numTokens: string = ethers.utils
-      .parseUnits(config.airdrop[ethers.utils.getAddress(address)].toString(), config.decimals)
+      .parseUnits((whitelist as any)[ethers.utils.getAddress(address)].toString(), 18)
       .toString();
 
     // Generate hashed leaf from address
-    const leaf: Buffer = generateLeaf(formattedAddress, numTokens);
-    // Generate airdrop proof
-    const proof: string[] = merkleTree.getHexProof(leaf);
+    // const leaf: Buffer = generateLeaf(formattedAddress, numTokens);
+    // // Generate airdrop proof
+    // const proof: string[] = merkleTree.getHexProof(leaf);
+    // console.log("TREE", merkleTree)
+    const tree = StandardMerkleTree.load(TreeJson as any);
+    let proof: string[] = [];
+
+    for (const [i, v] of (tree as any).entries()) {
+      if (v[0] === formattedAddress) {
+          // (3)
+          proof = tree.getProof(i);
+          console.log(proof)
+      }
+    }
+    if(!proof) return;
 
     // Try to claim airdrop and refresh sync status
     try {
@@ -144,10 +169,10 @@ function useToken() {
       setNumTokens(tokens);
 
       // Collect claimed status for address, if part of airdrop (tokens > 0)
-      if (tokens > 0) {
-        const claimed = await getClaimedStatus(address);
-        setAlreadyClaimed(claimed);
-      }
+      // if (tokens > 0) {
+      //   const claimed = await getClaimedStatus(address);
+      //   setAlreadyClaimed(claimed);
+      // }
     }
 
     // Toggle loading

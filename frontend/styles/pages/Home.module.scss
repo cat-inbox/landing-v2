@@ -4,10 +4,19 @@
   margin: 0px auto 50px auto;
   text-align: center;
   padding: 1rem;
+  display: flex;
+  min-height: 80vh;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  > .flex {
+    display: flex;
+  }
 
   // Logo
   > div {
-    margin: 2.5rem;
+    margin: 1.5rem;
   }
 
   // Article link
@@ -38,21 +47,26 @@
     margin: 1rem;
   }
 
-  > button {
-    min-width: 150px;
+  button {
+    min-width: 120px;
     font-weight: 500;
     border-radius: 12px;
-    padding: 1rem;
-    margin: 0px 1rem;
+    padding: 0.75rem 1rem;
+    margin: 0px 0.5rem;
     font-size: 16px;
     border: 1px solid rgb(255, 255, 255);
     color: rgb(0, 93, 194);
     background-color: rgb(186, 206, 255);
+    transition: 0.15s ease;
 
     &:disabled {
       opacity: 0.5;
       border-color: rgb(255, 255, 255);
       cursor: not-allowed;
+    }
+
+    &:hover {
+      background-color: rgb(171, 195, 255);
     }
   }
 }

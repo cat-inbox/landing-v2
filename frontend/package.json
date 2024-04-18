@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.6",
     "bnc-onboard": "^1.37.0",
     "ethers": "^5.5.2",
+    "fs": "^0.0.1-security",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.2.27",
     "next": "12.0.7",
